@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>onvshark-alert — Lightweight JS Alert Dialog</title>
+    <link rel="stylesheet" href="alert.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── CSS variables light / dark ── */
+        :root {
+            --bg        : #f8f9fa;
+            --surface   : #ffffff;
+            --border    : #e9ecef;
+            --border2   : #f1f3f5;
+            --text      : #1a1a2e;
+            --text-sub  : #74788d;
+            --text-muted: #adb5bd;
+            --code-bg   : #f1f3f5;
+            --code-color: #e63946;
+            --pre-bg    : #1a1a2e;
+            --pre-color : #e2e8f0;
+            --btn-out-bg: #ffffff;
+            --btn-out-bd: #dee2e6;
+            --btn-out-cl: #495057;
+            --btn-out-hv: #f3f4f6;
+            --install-bg: #ffffff;
+            --install-cl: #1a1a2e;
+            --h3-color  : #495057;
+        }
+
+        [data-theme="dark"] {
+            --bg        : #0f1117;
+            --surface   : #1a1d27;
+            --border    : #2a2d3a;
+            --border2   : #222533;
+            --text      : #e2e8f0;
+            --text-sub  : #94a3b8;
+            --text-muted: #64748b;
+            --code-bg   : #2a2d3a;
+            --code-color: #f87171;
+            --pre-bg    : #0d1117;
+            --pre-color : #e2e8f0;
+            --btn-out-bg: #1e2130;
+            --btn-out-bd: #2a2d3a;
+            --btn-out-cl: #cbd5e1;
+            --btn-out-hv: #252839;
+            --install-bg: #1a1d27;
+            --install-cl: #e2e8f0;
+            --h3-color  : #94a3b8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            transition: background .25s, color .25s;
+        }
+
+        /* ── navbar ── */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-brand {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -.3px;
+        }
+
+        .navbar-brand span { color: #4ba6ef; }
+
+        .navbar-actions { display: flex; gap: 8px; align-items: center; }
+
+        /* dark mode toggle */
+        .btn-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-sub);
+            cursor: pointer;
+            font-size: 16px;
+            transition: all .15s;
+        }
+
+        .btn-toggle:hover { background: var(--code-bg); color: var(--text); }
+
+        /* github button */
+        .btn-github {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all .15s;
+            font-family: inherit;
+        }
+
+        .btn-github:hover { background: var(--code-bg); }
+
+        .btn-github svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+
+        /* ── hero ── */
+        .hero {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 64px 24px 56px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: #eef6ff;
+            color: #4ba6ef;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        [data-theme="dark"] .hero-badge { background: #1e3a5f; }
+
+        .hero h1 {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -.5px;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .hero h1 span { color: #4ba6ef; }
+
+        .hero p {
+            font-size: 16px;
+            color: var(--text-sub);
+            max-width: 480px;
+            margin: 0 auto 32px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border-radius: 10px;
+            background: #4ba6ef;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .15s;
+            font-family: inherit;
+        }
+
+        .btn-primary:hover { background: #3a95de; }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border-radius: 10px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 700;
+            border: 1.5px solid var(--border);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .15s;
+            font-family: inherit;
+        }
+
+        .btn-secondary:hover { background: var(--code-bg); }
+
+        .btn-secondary svg { width: 16px; height: 16px; fill: currentColor; }
+
+        .hero-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .hero-meta a { color: #4ba6ef; text-decoration: none; }
+        .hero-meta a:hover { text-decoration: underline; }
+
+        /* ── layout ── */
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        section { margin-bottom: 48px; }
+
+        h2 {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--h3-color);
+            margin-bottom: 10px;
+        }
+
+        /* ── demo buttons ── */
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            transition: all .15s;
+            font-family: inherit;
+        }
+
+        .btn-success { background: #2ab57d; color: #fff; }
+        .btn-danger  { background: #fd625e; color: #fff; }
+        .btn-warning { background: #ffbf53; color: #fff; }
+        .btn-info    { background: #4ba6ef; color: #fff; }
+        .btn-outline { background: var(--btn-out-bg); border-color: var(--btn-out-bd); color: var(--btn-out-cl); }
+
+        .btn:hover { filter: brightness(.9); }
+        .btn-outline:hover { background: var(--btn-out-hv); filter: none; }
+
+        /* ── code block ── */
+        pre {
+            background: var(--pre-bg);
+            color: var(--pre-color);
+            border-radius: 10px;
+            padding: 20px 22px;
+            font-size: 12.5px;
+            line-height: 1.7;
+            overflow-x: auto;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        code { font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace; }
+
+        .tag-kw  { color: #93c5fd; }
+        .tag-fn  { color: #fde68a; }
+        .tag-str { color: #86efac; }
+        .tag-val { color: #f9a8d4; }
+        .tag-cmt { color: #6b7280; font-style: italic; }
+
+        /* ── install box ── */
+        .install-box {
+            background: var(--install-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 22px;
+            margin-bottom: 16px;
+        }
+
+        .install-box pre {
+            background: none;
+            color: var(--install-cl);
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+            border: none;
+        }
+
+        .install-box code { font-size: 13px; }
+
+        /* ── param table ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            border-bottom: 1.5px solid var(--border);
+            padding: 8px 12px;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border2);
+            color: var(--text-sub);
+            vertical-align: top;
+        }
+
+        td code {
+            background: var(--code-bg);
+            color: var(--code-color);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ── divider ── */
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 48px 0;
+        }
+
+        /* ── footer ── */
+        footer {
+            text-align: center;
+            padding: 32px 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        footer a { color: #4ba6ef; text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+    <a class="navbar-brand" href="#">onvshark<span>-alert</span></a>
+    <div class="navbar-actions">
+        <a class="btn-github" href="https://github.com/refaelsinaga/onvshark-alert" target="_blank">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23A11.52 11.52 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+            GitHub
+        </a>
+        <button class="btn-toggle" id="themeToggle" title="Toggle dark mode">
+            <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+    </div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+    <div class="hero-badge">Vanilla JS · No Dependencies</div>
+    <h1>onvshark<span>-alert</span></h1>
+    <p>Lightweight, zero-dependency alert dialog for any web project. Just two files — drop in and go.</p>
+
+    <div class="hero-buttons">
+        <button class="btn-primary" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">
+            Lihat Demo
+        </button>
+        <a class="btn-secondary" href="https://github.com/refaelsinaga/onvshark-alert" target="_blank">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23A11.52 11.52 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+            Lihat di GitHub
+        </a>
+    </div>
+
+    <div class="hero-meta">
+        v1.0.0 &nbsp;·&nbsp;
+        by <a href="https://refaelsinaga.com" target="_blank">Refael Sinaga</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ── INSTALL ── -->
+    <section>
+        <h2>Installation</h2>
+        <div class="install-box">
+            <pre><code>&lt;link rel="stylesheet" href="alert.css"&gt;
+&lt;script src="alert.js"&gt;&lt;/script&gt;</code></pre>
+        </div>
+    </section>
+
+    <!-- ── DEMO ── -->
+    <section id="demo">
+        <h2>Live Demo</h2>
+
+        <h3>Close Only</h3>
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="onvsAlert(true,'success','Berhasil!','Data berhasil disimpan ke database.',{confirm:{label:'OK',icon:'ok'}})">Success</button>
+            <button class="btn btn-info"    onclick="onvsAlert(true,'info','Informasi','Sinkronisasi data selesai.',{confirm:{label:'OK',icon:'ok'}})">Info</button>
+            <button class="btn btn-warning" onclick="onvsAlert(true,'warning','Perhatian','Stok hampir habis, segera restok.',{confirm:{label:'Mengerti',icon:'ok'}})">Warning</button>
+            <button class="btn btn-danger"  onclick="onvsAlert(true,'danger','Gagal!','Koneksi server terputus.',{confirm:{label:'OK',icon:'ok'}})">Danger</button>
+        </div>
+
+        <h3>Confirm &amp; Cancel</h3>
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="onvsAlert(true,'success','Simpan Perubahan?','Pastikan data sudah benar sebelum disimpan.',{confirm:{label:'Confirm',icon:'check',onClick:()=>onvsAlert(true,'success','Tersimpan!','Data berhasil diperbarui.',{confirm:{label:'OK',icon:'ok'}})},cancel:{label:'Cancel',icon:'x'}})">Confirm</button>
+            <button class="btn btn-info"    onclick="onvsAlert(true,'info','Kirim Data?','Data akan dikirim ke server pusat.',{confirm:{label:'Confirm',icon:'check',onClick:()=>onvsAlert(true,'success','Data Terkirim!','Server berhasil menerima data.',{confirm:{label:'OK',icon:'ok'}})},cancel:{label:'Cancel',icon:'x'}})">Info</button>
+        </div>
+
+        <h3>Delete Confirmation</h3>
+        <div class="btn-group">
+            <button class="btn btn-danger"  onclick="onvsAlert(true,'danger','Hapus Data?','Data tidak bisa dikembalikan setelah dihapus.',{confirm:{label:'Delete',icon:'trash',onClick:()=>onvsAlert(true,'success','Berhasil Dihapus!','Data telah berhasil dihapus dari sistem.',{confirm:{label:'OK',icon:'ok'}})},cancel:{label:'Cancel',icon:'x'}})">Danger</button>
+            <button class="btn btn-warning" onclick="onvsAlert(true,'warning','Hapus Produk?','Stok akan ikut terhapus secara permanen.',{confirm:{label:'Delete',icon:'trash',color:'#ffbf53',onClick:()=>onvsAlert(true,'success','Produk Dihapus!','Produk dan stok telah dihapus.',{confirm:{label:'OK',icon:'ok'}})},cancel:{label:'Cancel',icon:'x'}})">Warning</button>
+        </div>
+
+        <h3>Without Icon</h3>
+        <div class="btn-group">
+            <button class="btn btn-outline" onclick="onvsAlert(false,'danger','Yakin Logout?',null,{confirm:{label:'Logout',icon:'x'},cancel:{label:'Batal',icon:'x'}})">No Icon + Delete</button>
+            <button class="btn btn-outline" onclick="onvsAlert(false,'info','Konfirmasi','Lanjutkan proses ini?',{confirm:{label:'Lanjutkan',icon:'check'},cancel:{label:'Batal',icon:'x'}})">No Icon + Confirm</button>
+        </div>
+    </section>
+
+    <hr>
+
+    <!-- ── API ── -->
+    <section>
+        <h2>API Reference</h2>
+
+        <pre><code><span class="tag-fn">onvsAlert</span>(<span class="tag-val">icon</span>, <span class="tag-val">type</span>, <span class="tag-val">title</span>, <span class="tag-val">message</span>, <span class="tag-val">buttons</span>)</code></pre>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>icon</code></td>
+                    <td><code>boolean</code></td>
+                    <td><code>true</code> = show icon &nbsp;·&nbsp; <code>false</code> = no icon</td>
+                </tr>
+                <tr>
+                    <td><code>type</code></td>
+                    <td><code>string</code></td>
+                    <td><code>'success'</code> · <code>'danger'</code> · <code>'warning'</code> · <code>'info'</code></td>
+                </tr>
+                <tr>
+                    <td><code>title</code></td>
+                    <td><code>string</code></td>
+                    <td>Alert heading text</td>
+                </tr>
+                <tr>
+                    <td><code>message</code></td>
+                    <td><code>string | null</code></td>
+                    <td>Sub-text below the title — pass <code>null</code> to omit</td>
+                </tr>
+                <tr>
+                    <td><code>buttons</code></td>
+                    <td><code>object</code></td>
+                    <td>Button configuration (see below)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>buttons object</h3>
+        <pre><code>{
+  <span class="tag-val">confirm</span>: {
+    <span class="tag-val">label</span>  : <span class="tag-str">'Delete'</span>,    <span class="tag-cmt">// button label</span>
+    <span class="tag-val">icon</span>   : <span class="tag-str">'trash'</span>,    <span class="tag-cmt">// 'trash' | 'check' | 'x' | 'ok'</span>
+    <span class="tag-val">color</span>  : <span class="tag-str">'#fd625e'</span>,  <span class="tag-cmt">// optional — defaults to type color</span>
+    <span class="tag-val">onClick</span>: () => {}    <span class="tag-cmt">// optional callback</span>
+  },
+  <span class="tag-val">cancel</span>: {             <span class="tag-cmt">// optional — omit for close-only</span>
+    <span class="tag-val">label</span>  : <span class="tag-str">'Cancel'</span>,
+    <span class="tag-val">icon</span>   : <span class="tag-str">'x'</span>,
+    <span class="tag-val">onClick</span>: () => {}
+  }
+}</code></pre>
+    </section>
+
+    <hr>
+
+    <!-- ── EXAMPLES ── -->
+    <section>
+        <h2>Code Examples</h2>
+
+        <h3>Close Only</h3>
+        <pre><code><span class="tag-fn">onvsAlert</span>(<span class="tag-kw">true</span>, <span class="tag-str">'success'</span>, <span class="tag-str">'Berhasil!'</span>, <span class="tag-str">'Data berhasil disimpan.'</span>, {
+  confirm: { label: <span class="tag-str">'OK'</span>, icon: <span class="tag-str">'ok'</span> }
+})</code></pre>
+
+        <h3>Confirm &amp; Cancel</h3>
+        <pre><code><span class="tag-fn">onvsAlert</span>(<span class="tag-kw">true</span>, <span class="tag-str">'success'</span>, <span class="tag-str">'Simpan Perubahan?'</span>, <span class="tag-str">'Pastikan data sudah benar.'</span>, {
+  confirm: {
+    label  : <span class="tag-str">'Confirm'</span>,
+    icon   : <span class="tag-str">'check'</span>,
+    onClick: () => console.<span class="tag-fn">log</span>(<span class="tag-str">'confirmed'</span>)
+  },
+  cancel: { label: <span class="tag-str">'Cancel'</span>, icon: <span class="tag-str">'x'</span> }
+})</code></pre>
+
+        <h3>Delete (chained)</h3>
+        <pre><code><span class="tag-fn">onvsAlert</span>(<span class="tag-kw">true</span>, <span class="tag-str">'danger'</span>, <span class="tag-str">'Hapus Data?'</span>, <span class="tag-str">'Data tidak bisa dikembalikan.'</span>, {
+  confirm: {
+    label  : <span class="tag-str">'Delete'</span>,
+    icon   : <span class="tag-str">'trash'</span>,
+    onClick: () => <span class="tag-fn">onvsAlert</span>(<span class="tag-kw">true</span>, <span class="tag-str">'success'</span>, <span class="tag-str">'Dihapus!'</span>, <span class="tag-str">'Data berhasil dihapus.'</span>, {
+      confirm: { label: <span class="tag-str">'OK'</span>, icon: <span class="tag-str">'ok'</span> }
+    })
+  },
+  cancel: { label: <span class="tag-str">'Cancel'</span>, icon: <span class="tag-str">'x'</span> }
+})</code></pre>
+    </section>
+
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+    <strong>onvshark-alert</strong> v1.0.0 &nbsp;·&nbsp;
+    by <a href="https://refaelsinaga.com" target="_blank">Refael Sinaga</a> &nbsp;·&nbsp;
+    <a href="https://github.com/refaelsinaga/onvshark-alert" target="_blank">View on GitHub</a>
+</footer>
+
+<script src="alert.js"></script>
+<script>
+    const toggle = document.getElementById('themeToggle');
+    const html   = document.documentElement;
+
+    const moon = document.getElementById('icon-moon');
+    const sun  = document.getElementById('icon-sun');
+
+    function applyTheme(theme) {
+        html.setAttribute('data-theme', theme);
+        moon.style.display = theme === 'dark' ? 'none' : '';
+        sun.style.display  = theme === 'dark' ? ''     : 'none';
+        localStorage.setItem('onvs-theme', theme);
+    }
+
+    const saved = localStorage.getItem('onvs-theme');
+    if (saved) applyTheme(saved);
+
+    toggle.addEventListener('click', () => {
+        applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+</script>
+</body>
+</html>
