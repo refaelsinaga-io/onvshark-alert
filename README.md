@@ -2,6 +2,12 @@
 
 Lightweight vanilla-JS alert dialog — no dependencies, no jQuery, no framework required.
 
+![version](https://img.shields.io/badge/version-1.0.0-blue?style=flat-square)
+![license](https://img.shields.io/badge/license-MIT-green?style=flat-square)
+![vanilla js](https://img.shields.io/badge/vanilla-JS-f7df1e?style=flat-square&logoColor=black)
+![no dependencies](https://img.shields.io/badge/dependencies-none-brightgreen?style=flat-square)
+![size](https://img.shields.io/badge/size-~4kb-lightgrey?style=flat-square)
+
 **Author:** Refael Sinaga · [refaelsinaga.com](https://refaelsinaga.com)  
 **Version:** 1.0.0  
 **License:** MIT
